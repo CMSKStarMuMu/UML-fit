@@ -25,11 +25,14 @@ double quantPerc [nQuant] = {0.025,0.16,0.84,0.975};
 int colors [12] = { 633, 417, 879, 857, 839, 801, 921, 607, 807, 419, 907, 402 };
 // int colors [13] = { 633, 417, 879, 857, 839, 887, 801, 921, 607, 807, 419, 907, 402 };
 
-double diffMax = 0.0499;
+double diffMax = 0.0999;
+// double diffMax = 0.0499;
 
 void plotMultiFit (int binIndex=-1, int parity=1)
 {
 
+  gROOT->SetBatch(true);
+  
   vector< vector<TH1D*> > vHistBest (nPars);
   vector< vector<TH1D*> > vHistErrH (nPars);
   vector< vector<TH1D*> > vHistErrL (nPars);
@@ -77,10 +80,10 @@ void plotMultiFit (int binIndex=-1, int parity=1)
     vq2Bins.push_back(q2Bin);
 
     TChain fitResultsTree ("fitResultsTree","");
-    string filename = Form("simFitResults/simFitResult_recoMC_fullAngular201620172018_dataStat-*_b%i.root",q2Bin);
+    string filename = Form("simFitResults4d/simFitResult_recoMC_fullAngularMass_toybkg201620172018_dataStat-*_b%i.root",q2Bin);
     fitResultsTree.Add(filename.c_str());
 
-    string filename_fR = Form("simFitResults/simFitResult_recoMC_fullAngular201620172018_MCStat_b%i.root",q2Bin);
+    string filename_fR = Form("simFitResults4d/simFitResult_recoMC_fullAngularMass201620172018_MCStat_b%i.root",q2Bin);
     TFile* filein_fR = TFile::Open(filename_fR.c_str());
     TTree* fitResultsTree_fR = (TTree*)filein_fR->Get("fitResultsTree");
     if (!fitResultsTree_fR || fitResultsTree_fR->GetEntries() != 1) {
@@ -252,8 +255,8 @@ void plotMultiFit (int binIndex=-1, int parity=1)
     cUncert[iPar]->cd();
     legUnc->Draw();
 
-    cDistr[iPar]->SaveAs(Form("plotSimFit_d/simfit_recoMC_%s_dist.pdf",parName[iPar].c_str()));
-    cUncert[iPar]->SaveAs(Form("plotSimFit_d/simfit_recoMC_%s_uncert.pdf",parName[iPar].c_str()));
+    cDistr[iPar]->SaveAs(Form("plotSimFit_d/simfit_recoMC_%s_dist_4Dbkg.pdf",parName[iPar].c_str()));
+    cUncert[iPar]->SaveAs(Form("plotSimFit_d/simfit_recoMC_%s_uncert_4Dbkg.pdf",parName[iPar].c_str()));
 
     // Plot resutls vs q2
 
@@ -446,7 +449,7 @@ void plotMultiFit (int binIndex=-1, int parity=1)
     line->Draw();
     resDiffCover->Draw("e2");
 
-    cResult[iPar]->SaveAs(Form("plotSimFit_d/simfit_recoMC_%s_results.pdf",parName[iPar].c_str()));
+    cResult[iPar]->SaveAs(Form("plotSimFit_d/simfit_recoMC_%s_results_4Dbkg.pdf",parName[iPar].c_str()));
 
   }
 

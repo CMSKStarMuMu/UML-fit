@@ -216,24 +216,36 @@ void simfit_recoMC_fullAngularMassBin(int q2Bin, int parity, bool multiSample, u
 
     // Mass Component
     // import mass PDF from fits to the MC
-    string filename_mc_mass = Form("/eos/cms/store/user/fiorendi/p5prime/massFits/results_fits_%i_fM_newbdt.root",years[iy]);
+    string channelStr = "";
+    if (q2Bin==4) channelStr= "_Jpsi";
+    if (q2Bin==6) channelStr= "_Psi";
+    string filename_mc_mass = Form("/eos/cms/store/user/fiorendi/p5prime/massFits/results_fits_%i_fM%s_newbdt.root",years[iy],channelStr.c_str());
     if (!retrieveWorkspace( filename_mc_mass, wsp_mcmass, "w"))  return;
 
+    wsp_mcmass[iy]->Print();
     wsp_mcmass[iy]->loadSnapshot(Form("reference_fit_RT_%i",q2Bin));
     RooRealVar* mean_rt       = new RooRealVar (Form("mean_{RT}^{%i}",years[iy])    , "massrt"      , wsp_mcmass[iy]->var(Form("mean_{RT}^{%i}",q2Bin))->getVal()     ,      5,    6, "GeV");
     RooRealVar* sigma_rt      = new RooRealVar (Form("#sigma_{RT1}^{%i}",years[iy] ), "sigmart1"    , wsp_mcmass[iy]->var(Form("#sigma_{RT1}^{%i}",q2Bin))->getVal()  ,      0,    1, "GeV");
     RooRealVar* alpha_rt1     = new RooRealVar (Form("#alpha_{RT1}^{%i}",years[iy] ), "alphart1"    , wsp_mcmass[iy]->var(Form("#alpha_{RT1}^{%i}", q2Bin))->getVal() ,      0,   10 );
-    RooRealVar* alpha_rt2     = new RooRealVar (Form("#alpha_{RT2}^{%i}",years[iy] ), "alphart2"    , wsp_mcmass[iy]->var(Form("#alpha_{RT2}^{%i}", q2Bin))->getVal() ,    -10,   10 );
     RooRealVar* n_rt1         = new RooRealVar (Form("n_{RT1}^{%i}",years[iy])      , "nrt1"        , wsp_mcmass[iy]->var(Form("n_{RT1}^{%i}", q2Bin))->getVal()      ,      0.01,  100.);
-    RooRealVar* n_rt2         = new RooRealVar (Form("n_{RT2}^{%i}",years[iy])      , "nrt2"        , wsp_mcmass[iy]->var(Form("n_{RT2}^{%i}", q2Bin))->getVal()      ,      0.01,  100.);
 
     RooAbsPdf* dcb_rt;
+    RooRealVar* alpha_rt2 = new RooRealVar (Form("#alpha_{RT2}^{%i}",years[iy] ), "alphart2"    , 0,    -10,   10 );
+    RooRealVar* n_rt2     = new RooRealVar (Form("n_{RT2}^{%i}",years[iy])      , "nrt2"        , 0.01,   0.01,  100.);
     RooRealVar* sigma_rt2 = new RooRealVar (Form("#sigma_{RT2}^{%i}",years[iy] ), "sigmaRT2"  ,   0 , 0,   0.12, "GeV");
     RooRealVar* f1rt      = new RooRealVar (Form("f^{RT%i}",years[iy])          , "f1rt"      ,   0 , 0.,  1.);
-    if (q2Bin >= 5){
+    if (q2Bin != 7){
+      alpha_rt2 -> setVal(wsp_mcmass[iy]->var(Form("#alpha_{RT2}^{%i}", q2Bin))->getVal() );
+      n_rt2     -> setVal(wsp_mcmass[iy]->var(Form("n_{RT2}^{%i}", q2Bin)     )->getVal() );
+    }
+    if (q2Bin >= 4){
       sigma_rt2-> setVal(wsp_mcmass[iy]->var(Form("#sigma_{RT2}^{%i}",q2Bin))->getVal() );
       f1rt     -> setVal(wsp_mcmass[iy]->var(Form("f^{RT%i}", q2Bin))->getVal() );
-      dcb_rt = createRTMassShape(q2Bin, mass, mean_rt, sigma_rt, sigma_rt2, alpha_rt1, alpha_rt2, n_rt1, n_rt2 ,f1rt, wsp_mcmass[iy], years[iy], true, c_vars_rt, c_pdfs_rt );
+      if (q2Bin < 7) 
+        dcb_rt = createRTMassShape(q2Bin, mass, mean_rt, sigma_rt, sigma_rt2, alpha_rt1, alpha_rt2, n_rt1, n_rt2 ,f1rt, wsp_mcmass[iy], years[iy], true, c_vars_rt, c_pdfs_rt );
+      else
+        dcb_rt = createRTMassShape(q2Bin, mass, mean_rt, sigma_rt, sigma_rt2, alpha_rt1, n_rt1 ,f1rt, q2Bin, wsp_mcmass[iy], years[iy], true, c_vars_rt, c_pdfs_rt );
+       
     } 
     else{
         alpha_rt2->setRange(0,10);
@@ -263,15 +275,6 @@ void simfit_recoMC_fullAngularMassBin(int q2Bin, int parity, bool multiSample, u
     constr_wt_list.add(*dcb_wt);
     RooProdPdf * c_dcb_wt = new RooProdPdf(("c_dcb_wt_"+year).c_str(), ("c_dcb_wt_"+year).c_str(), constr_wt_list );
     c_vars.add(c_vars_wt);
-
-    cout << "deltap built --> constraint not added yet (to be done)" << endl;
-    //// creating constraints for the difference between the two peaks
-//     RooFormulaVar* deltaPeaks = new RooFormulaVar(Form("deltaPeaks^{%i}", years[iy]), "@0 - @1", RooArgList(*mean_rt, *mean_wt))  ;
-//     c_deltaPeaks.push_back(     new RooGaussian(Form("c_deltaPeaks^{%i}", years[iy]), "c_deltaPeaks", *deltaPeaks, 
-//                                                 RooConst( deltaPeaks->getVal() ), 
-//                                                 RooConst( 0.0005 ) 
-//                                                ) );
-//     c_vars.add(*deltaPeaks);       c_pdfs.add(*c_deltaPeaks[iy]);
 
     RooRealVar* mFrac = new RooRealVar(Form("f_{M}^{%i}",years[iy]),"mistag fraction",1, 0.5, 1.5);
     /// create constraint on mFrac (mFrac = 1, constraint derived from stat scaling)
@@ -326,6 +329,28 @@ void simfit_recoMC_fullAngularMassBin(int q2Bin, int parity, bool multiSample, u
       		                                                *c_dcb_rt, *c_dcb_wt
       		                                                ));
     }      		                                           
+    else if (q2Bin==7){
+        PDF_sig_ang_mass.push_back( new PdfSigAngMass( ("PDF_sig_ang_mass_"+shortString+"_"+year).c_str(),
+                                                       ("PDF_sig_ang_mass_"+year).c_str(),
+         		                                *ctK,*ctL,*phi,*mass,
+                                                        *mean_rt, *sigma_rt, *sigma_rt2, *alpha_rt1, *n_rt1, *f1rt,
+                                                        *mean_wt, *sigma_wt, *alpha_wt1, *alpha_wt2, *n_wt1, *n_wt2,                        
+         		                                *mFrac, *c_fm,
+         		                                *ang_rt, *ang_wt,
+         		                                *c_dcb_rt, *c_dcb_wt
+         		                                ));
+    
+        PDF_sig_ang_mass_penalty.push_back(new PdfSigAngMass( ("PDF_sig_ang_mass_penalty_"+shortString+"_"+year).c_str(),
+                                                              ("PDF_sig_ang_mass_penalty_"+year).c_str(),
+      		                                              *ctK,*ctL,*phi,*mass,
+                                                              *mean_rt, *sigma_rt, *sigma_rt2, *alpha_rt1, *n_rt1, *f1rt,
+                                                              *mean_wt, *sigma_wt, *alpha_wt1, *alpha_wt2, *n_wt1, *n_wt2,                        
+      		                                              *mFrac, *c_fm,
+                          		                      *penTerm,
+           		                                      *ang_rt, *ang_wt,
+      		                                              *c_dcb_rt, *c_dcb_wt
+      		                                              ));
+    } 
     else {
         PDF_sig_ang_mass.push_back( new PdfSigAngMass( ("PDF_sig_ang_mass_"+shortString+"_"+year).c_str(),
                                                        ("PDF_sig_ang_mass_"+year).c_str(),
