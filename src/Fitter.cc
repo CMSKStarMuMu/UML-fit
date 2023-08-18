@@ -308,6 +308,7 @@ Int_t Fitter::improveAng(int seed, int nGen)
   double improvNLL = NLL_before;
   double testNLL = 0;
   int iImprove = 0;
+  std::cout << Form("NLL_before = %.5f",NLL_before) << std::endl;
 
   do {
 
@@ -335,6 +336,7 @@ Int_t Fitter::improveAng(int seed, int nGen)
     ((RooRealVar*)angPars.at(iPar))->setVal(vImprovPar[iPar]);
   
   computeBoundaryDistance();
+  std::cout << Form("NLL_after = %.5f",improvNLL) << std::endl;
   std::cout<<"Improved fit result: deltaNLL = "<<NLL_before-improvNLL<<" bound dist: "<<preBoundDist<<" -> "<<boundDist<<std::endl;
 
   fillResultContainers(true);

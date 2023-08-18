@@ -1,6 +1,6 @@
 #!/bin/bash
 
-par=1
+par=0
 
 multi=0
 nsam=0

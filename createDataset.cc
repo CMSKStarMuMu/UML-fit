@@ -1,17 +1,24 @@
 using namespace RooFit;
 using namespace std;
 
+double deltaR(double eta1, double phi1, double eta2, double phi2);
+
 static const int nBins = 9;
 float binBorders [nBins+1] = { 1, 2, 4.3, 6, 8.68, 10.09, 12.86, 14.18, 16, 19};
 
-double PDGB0Mass = 5.27958;
-double PDGJpsiMass = 3.096916;
-double PDGPsiPrimeMass = 3.686109;
-double PDGKstMass = 0.896;
+double PDGB0Mass = 5.2797;
+double PDGJpsiMass = 3.0969;
+double PDGPsiPrimeMass = 3.6861;
+double PDGKstMass = 0.8956;
+
+map<int,vector<double>> swapCut = {
+  {6, {0.13, 0.15, 0.07, 0.43, -0.45, 2.0}},
+  {7, {0.07, 0.13, 0.11, 0.45, -0.65, 1.9}},
+  {8, {0.09, 0.13, 0.07, 0.23, -0.45, 1.0}} };
 
 TCanvas* c [nBins];
 
-void createDataset(int year, int q2Bin = -1, int data = 0, int XGBv = 4, bool plot = false)
+void createDataset(int year, int q2Bin = -1, int data = 0, int XGBv = 8, bool plot = false)
 {
   // year format: [6] for 2016
   //              [7] for 2017
@@ -24,7 +31,7 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int XGBv = 4, bool pl
   if ( year<6 || year>8 ) return;
 
   string XGBstr = "";
-  if (XGBv>0 && XGBv<6) XGBstr = Form("_XGBv%i",XGBv);
+  if (!data && (XGBv==8 || (XGBv>0 && XGBv<6))) XGBstr = Form("_XGBv%i",XGBv);
 
   bool isJpsi = false;
   bool isPsi  = false;
@@ -56,6 +63,7 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int XGBv = 4, bool pl
   for (int i=0; i<nBins; ++i) {
     runBin [i] = false;
     if ( q2Bin!=-1 && q2Bin!=i ) continue;
+    if ( !data && (q2Bin==-1 && ( i==4 || i==6 ) ) ) continue; // b4 and b6 use different MC samples, so don't overwrite them when running the non-resonant for all the bins
     runBin [i] = true;
     shortString [i] = Form("b%i",i);
     longString  [i] = Form("q2 bin %i",i);
@@ -63,15 +71,15 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int XGBv = 4, bool pl
 
   // Load ntuples
   string year_str = Form("201%i", year);
-  auto f_num = TFile::Open(Form("/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/%s/201%i.root",data==0?Form("MC-%s%s",isJpsi?"Jpsi":(isPsi?"Psi":"LMNR"),XGBstr.c_str()):"data",year));
+  auto f_num = TFile::Open(Form("/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/%s/201%i.root",data==0?Form("MC-%s%s",isJpsi?"Jpsi":(isPsi?"Psi":"LMNR"),XGBv>0?Form("-XGBv%i",XGBv):""):"data",year));
   auto t_num = (TTree*)f_num->Get("ntuple");
-  if (data==0 && XGBv>9) {
-    t_num->AddFriend("wTree",Form("/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/MC-%s-TMVAv%i/201%i.root",isJpsi?"Jpsi":(isPsi?"Psi":"LMNR"),XGBv-10,year));
-    XGBstr = Form("_TMVAv%i",XGBv-10);
-  } else if (data==0 && XGBv>5) {
-    t_num->AddFriend("wTree",Form("/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/MC-%s-XGBv%i/201%i.root",isJpsi?"Jpsi":(isPsi?"Psi":"LMNR"),XGBv,year));
-    XGBstr = Form("_XGBv%i",XGBv);
-  }
+  // if (data==0 && XGBv>9) {
+  //   t_num->AddFriend("wTree",Form("/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/MC-%s-TMVAv%i/201%i.root",isJpsi?"Jpsi":(isPsi?"Psi":"LMNR"),XGBv-10,year));
+  //   XGBstr = Form("_TMVAv%i",XGBv-10);
+  // } else if (data==0 && XGBv>5) {
+  //   t_num->AddFriend("wTree",Form("/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/MC-%s-XGBv%i/201%i.root",isJpsi?"Jpsi":(isPsi?"Psi":"LMNR"),XGBv,year));
+  //   XGBstr = Form("_XGBv%i",XGBv);
+  // }
 
   // TChain* t_num = new TChain();
   // if (data==0 && isLMNR)
@@ -118,6 +126,58 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int XGBv = 4, bool pl
   t_num->SetBranchAddress( "passB0Psi_jpsi", &passB0Psi_jpsi );
   t_num->SetBranchAddress( "passB0Psi_psip", &passB0Psi_psip );
 
+  // Anti-swap cut
+  double kstTrkmPt		     = 0;
+  double kstTrkmEta		     = 0;
+  double kstTrkmPhi		     = 0;
+  double kstTrkpPt		     = 0;
+  double kstTrkpEta		     = 0;
+  double kstTrkpPhi		     = 0;
+  double mumPt			     = 0;
+  double mumEta			     = 0;
+  double mumPhi			     = 0;
+  double mupPt			     = 0;
+  double mupEta			     = 0;
+  double mupPhi			     = 0;
+  double selected_swapped_b0_mass    = 0;
+  double selected_swapped_kstar_mass = 0;
+  double selected_swapped_mumu_mass  = 0;
+  Long64_t charge_pf_swapped_track     = 0;
+
+  t_num->SetBranchStatus("kstTrkmPt",1);
+  t_num->SetBranchStatus("kstTrkmEta",1);
+  t_num->SetBranchStatus("kstTrkmPhi",1);
+  t_num->SetBranchStatus("kstTrkpPt",1);
+  t_num->SetBranchStatus("kstTrkpEta",1);
+  t_num->SetBranchStatus("kstTrkpPhi",1);
+  t_num->SetBranchStatus("mumPt",1);
+  t_num->SetBranchStatus("mumEta",1);
+  t_num->SetBranchStatus("mumPhi",1);
+  t_num->SetBranchStatus("mupPt",1);
+  t_num->SetBranchStatus("mupEta",1);
+  t_num->SetBranchStatus("mupPhi",1);
+  t_num->SetBranchStatus("selected_swapped_b0_mass",1);
+  t_num->SetBranchStatus("selected_swapped_kstar_mass",1);
+  t_num->SetBranchStatus("selected_swapped_mumu_mass",1);
+  t_num->SetBranchStatus("charge_pf_swapped_track",1);
+
+  t_num->SetBranchAddress("kstTrkmPt"		    , &kstTrkmPt		   );
+  t_num->SetBranchAddress("kstTrkmEta"		    , &kstTrkmEta		   );
+  t_num->SetBranchAddress("kstTrkmPhi"		    , &kstTrkmPhi		   );
+  t_num->SetBranchAddress("kstTrkpPt"		    , &kstTrkpPt		   );
+  t_num->SetBranchAddress("kstTrkpEta"		    , &kstTrkpEta		   );
+  t_num->SetBranchAddress("kstTrkpPhi"		    , &kstTrkpPhi		   );
+  t_num->SetBranchAddress("mumPt"		    , &mumPt			   );
+  t_num->SetBranchAddress("mumEta"       	    , &mumEta			   );
+  t_num->SetBranchAddress("mumPhi"     		    , &mumPhi			   );
+  t_num->SetBranchAddress("mupPt"		    , &mupPt			   );
+  t_num->SetBranchAddress("mupEta"		    , &mupEta			   );
+  t_num->SetBranchAddress("mupPhi"		    , &mupPhi			   );
+  t_num->SetBranchAddress("selected_swapped_b0_mass"   , &selected_swapped_b0_mass   );
+  t_num->SetBranchAddress("selected_swapped_kstar_mass", &selected_swapped_kstar_mass);
+  t_num->SetBranchAddress("selected_swapped_mumu_mass" , &selected_swapped_mumu_mass );
+  t_num->SetBranchAddress("charge_pf_swapped_track"    , &charge_pf_swapped_track    );
+
   // B0-kinematic variables
   // double recoB0pT, recoB0eta;
   // t_num->SetBranchAddress( "bPt"    , &recoB0pT  );
@@ -155,7 +215,11 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int XGBv = 4, bool pl
     // MC weights
     double XGBweight = 1;
     float fXGBweight = 1;
-    if (XGBv>9) {
+    if (XGBv==8) {
+      t_num->SetBranchStatus("XGBv8",1);
+      t_num->SetBranchAddress( "XGBv8", &fXGBweight );
+    }
+    else if (XGBv>9) {
       t_num->SetBranchStatus("MCw",1);
       t_num->SetBranchAddress( "MCw", &XGBweight );
     }
@@ -208,7 +272,18 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int XGBv = 4, bool pl
       if (xBin<0) continue;
       
       // apply cut for bin 4 
-    if (isJpsi && XCut>0) continue;
+      if (isJpsi && XCut>0) continue;
+
+      // anti-swap cut
+      if (fabs(selected_swapped_mumu_mass-PDGJpsiMass)<swapCut[year][0] &&
+	  fabs(selected_swapped_kstar_mass-PDGKstMass)<swapCut[year][1] &&
+	  fabs(selected_swapped_b0_mass-PDGB0Mass-selected_swapped_mumu_mass+PDGJpsiMass)<swapCut[year][2] &&
+	  ( ( charge_pf_swapped_track<0 && (deltaR(kstTrkmEta,kstTrkmPhi,mumEta,mumPhi)<swapCut[year][3] &&
+					    (mumPt-kstTrkmPt)/kstTrkmPt>swapCut[year][4] &&
+					    (mumPt-kstTrkmPt)/kstTrkmPt<swapCut[year][5]) ) ||
+	    ( charge_pf_swapped_track>0 && (deltaR(kstTrkpEta,kstTrkpPhi,mupEta,mupPhi)<swapCut[year][3] &&
+					    (mupPt-kstTrkpPt)/kstTrkpPt>swapCut[year][4] &&
+					    (mupPt-kstTrkpPt)/kstTrkpPt<swapCut[year][5]) ) ) ) continue;
 
       // status display
       if ( iCand > 1.0*counter*numEntries/100 ) {
@@ -414,6 +489,17 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int XGBv = 4, bool pl
       // apply cut for bin 4 
       if (isJpsi && XCut>0) continue;
 
+      // anti-swap cut
+      if (fabs(selected_swapped_mumu_mass-PDGJpsiMass)<swapCut[year][0] &&
+	  fabs(selected_swapped_kstar_mass-PDGKstMass)<swapCut[year][1] &&
+	  fabs(selected_swapped_b0_mass-PDGB0Mass-selected_swapped_mumu_mass+PDGJpsiMass)<swapCut[year][2] &&
+	  ( ( charge_pf_swapped_track<0 && (deltaR(kstTrkmEta,kstTrkmPhi,mumEta,mumPhi)<swapCut[year][3] &&
+					    (mumPt-kstTrkmPt)/kstTrkmPt>swapCut[year][4] &&
+					    (mumPt-kstTrkmPt)/kstTrkmPt<swapCut[year][5]) ) ||
+	    ( charge_pf_swapped_track>0 && (deltaR(kstTrkpEta,kstTrkpPhi,mupEta,mupPhi)<swapCut[year][3] &&
+					    (mupPt-kstTrkpPt)/kstTrkpPt>swapCut[year][4] &&
+					    (mupPt-kstTrkpPt)/kstTrkpPt<swapCut[year][5]) ) ) ) continue;
+
       // status display
       if ( iCand > 1.0*counter*numEntries/100 ) {
         cout<<counter<<"%"<<endl;
@@ -446,4 +532,15 @@ void createDataset(int year, int q2Bin = -1, int data = 0, int XGBv = 4, bool pl
   }
 
 
+}
+
+double deltaR(double eta1, double phi1, double eta2, double phi2)
+{
+  float deltaPhi = phi1 - phi2;
+  if (fabs(deltaPhi)>TMath::Pi()) {
+    if (deltaPhi>0) deltaPhi = deltaPhi - 2*TMath::Pi();
+    else deltaPhi = deltaPhi + 2*TMath::Pi();
+  }
+  float deltaEta = eta1 - eta2;
+  return sqrt( deltaEta*deltaEta + deltaPhi*deltaPhi );
 }

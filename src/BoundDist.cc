@@ -106,7 +106,7 @@ Double_t BoundDist::evalR(double Radius) const
 
   bool nextRun;
 
-  TRandom3 randGen(0);
+  TRandom3 randGen(1);
 
   for (int iProbe=0; iProbe<nPoints; ++iProbe) {
 
