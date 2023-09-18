@@ -28,12 +28,13 @@ int colors [12] = { 633, 417, 879, 857, 839, 801, 921, 607, 807, 419, 907, 402 }
 double diffMax = 0.0999;
 // double diffMax = 0.0499;
 
-void plotMultiFit_efftoy (int binIndex=-1, int parity=0, int whichSamples = 2, bool ref4dFit = true)
+void plotMultiFit_efftoy (int binIndex=-1, int parity=0, int whichSamples = 3, bool ref4dFit = true)
 {
 
   // whichSamples=0 -> plot fit results to 3D MC subsamples
   // whichSamples=1 -> plot fit results to 4D MC subsamples
   // whichSamples=2 -> plot fit results to 4D MC subsamples + toy background
+  // whichSamples=3 -> plot fit results to data
   
   vector< vector<TH1D*> > vHistBest (nPars);
   vector< vector<TH1D*> > vHistErrH (nPars);
@@ -91,6 +92,8 @@ void plotMultiFit_efftoy (int binIndex=-1, int parity=0, int whichSamples = 2, b
     // string filename = Form("/eos/user/a/aboletti/BdToKstarMuMu/eff-KDE-Swave/simFitResults4d/simFitResult_recoMC_fullAngularMass_toyeff201620172018_dataStat-0_b%i_good.root",q2Bin);
     // string filename = Form("/eos/user/a/aboletti/BdToKstarMuMu/MCstat/simFitResults4d/simFitResult_recoMC_fullAngularMass_toybkg201620172018_dataStat-0_b%i_toyeff*.root",q2Bin);
     string filename = Form("/eos/user/a/aboletti/BdToKstarMuMu/MCstat/simFitResults4d/xgbv8/simFitResult_recoMC_fullAngularMass_toybkg201620172018_dataStat-0_p%i_b%i_toyeff*.root",parity,q2Bin);
+    if (whichSamples==3)
+      filename = Form("simFitResults4d/simFitResult_data_fullAngularMass_Swave_201620172018_b%i-XGBv8_toyeff*.root",q2Bin);
     // string filename = Form("simFitResults4d/simFitResult_recoMC_fullAngularMass_toybkg201620172018_dataStat-*_b%i.root",q2Bin);
     // if (plot4dFit==1) filename = Form("simFitResults4d/simFitResult_recoMC_fullAngularMass201620172018_dataStat-*_b%i.root",q2Bin);
     // if (plot4dFit==0) filename = Form("simFitResults/simFitResult_recoMC_fullAngular201620172018_dataStat-*_b%i.root",q2Bin);
@@ -98,6 +101,8 @@ void plotMultiFit_efftoy (int binIndex=-1, int parity=0, int whichSamples = 2, b
 
     // string filename_fR = Form("simFitResults4d/simFitResult_recoMC_fullAngularMass_toybkg201620172018_dataStat-0_b%i.root",q2Bin);
     string filename_fR = Form("simFitResults4d/xgbv8/simFitResult_recoMC_fullAngularMass_toybkg201620172018_dataStat-0_b%i.root",q2Bin);
+    if (whichSamples==3)
+      filename_fR = Form("./simFitResults4d/simFitResult_data_fullAngularMass_Swave_201620172018_b%i-XGBv8_unbl4.root",q2Bin);
     // string filename_fR = Form("../UML-fit-integration/simFitResults4d/simFitResult_recoMC_fullAngularMass201620172018_dataStat-0_b%i.root",q2Bin);
     // string filename_fR = Form("simFitResults4d/simFitResult_recoMC_fullAngularMass201620172018_MCStat_b%i.root",q2Bin);
     // if (!ref4dFit) filename_fR = Form("simFitResults/simFitResult_recoMC_fullAngular201620172018_MCStat_b%i.root",q2Bin);
@@ -129,12 +134,12 @@ void plotMultiFit_efftoy (int binIndex=-1, int parity=0, int whichSamples = 2, b
       fitResultsTree_fR->SetBranchAddress(Form("%s_high",parName[iPar].c_str()),&vHigh[iPar]);
       fitResultsTree_fR->SetBranchAddress(Form("%s_low" ,parName[iPar].c_str()),&vLow [iPar]);
 
-      vHistBest[iPar].push_back( new TH1D(Form("hBest%i%i",q2Bin,iPar),Form("%s results of data-like MC sample fits - q2 bin %i;%s;# of results",parTitle[iPar].c_str(),q2Bin,parTitle[iPar].c_str()),100,parMin[iPar],parMax[iPar]) );
+      vHistBest[iPar].push_back( new TH1D(Form("hBest%i%i",q2Bin,iPar),Form("%s results of data fit with toy efficiencies - q2 bin %i;%s;# of results",parTitle[iPar].c_str(),q2Bin,parTitle[iPar].c_str()),100,parMin[iPar],parMax[iPar]) );
       vHistBestDense[iPar].push_back( new TH1D(Form("hBestDense%i%i",q2Bin,iPar),"",
 					       (parMax[iPar]-parMin[iPar])*300,
 					       parMin[iPar],parMax[iPar]) );
-      vHistErrH[iPar].push_back( new TH1D(Form("hErrH%i%i",q2Bin,iPar),Form("%s MINOS uncertainties of data-like MC sample fits - q2 bin %i;#sigma(%s);# of results",parTitle[iPar].c_str(),q2Bin,parTitle[iPar].c_str()),nUncBins,binsUnc) );
-      vHistErrL[iPar].push_back( new TH1D(Form("hErrL%i%i",q2Bin,iPar),Form("%s MINOS uncertainties of data-like MC sample fits - q2 bin %i;#sigma(%s);# of results",parTitle[iPar].c_str(),q2Bin,parTitle[iPar].c_str()),nUncBins,binsUnc) );
+      vHistErrH[iPar].push_back( new TH1D(Form("hErrH%i%i",q2Bin,iPar),Form("%s MINOS uncertainties of data fit with toy efficiencies - q2 bin %i;#sigma(%s);# of results",parTitle[iPar].c_str(),q2Bin,parTitle[iPar].c_str()),nUncBins,binsUnc) );
+      vHistErrL[iPar].push_back( new TH1D(Form("hErrL%i%i",q2Bin,iPar),Form("%s MINOS uncertainties of data fit with toy efficiencies - q2 bin %i;#sigma(%s);# of results",parTitle[iPar].c_str(),q2Bin,parTitle[iPar].c_str()),nUncBins,binsUnc) );
 
       vHistBest[iPar].back()->SetLineColor(colors[iColor]);
       vHistErrH[iPar].back()->SetLineColor(colors[iColor]);
@@ -153,7 +158,7 @@ void plotMultiFit_efftoy (int binIndex=-1, int parity=0, int whichSamples = 2, b
     for (int iPar=0; iPar<nPars; ++iPar) {
       vHistBestRECO[iPar].push_back( vBest[iPar] );
       vHistErrHRECO[iPar].push_back( vHigh[iPar] );
-      vHistErrLRECO[iPar].push_back( vLow [iPar] );
+      vHistErrLRECO[iPar].push_back( (whichSamples==3?-1:1)*vLow [iPar] );
     }
 
     // Pre-cycle
@@ -260,8 +265,8 @@ void plotMultiFit_efftoy (int binIndex=-1, int parity=0, int whichSamples = 2, b
       legUnc = new TLegend(0.67,0.57,0.87,0.87,"q^{2} bin");
     legUnc->SetNColumns(2);
     if (nPlotBins>1) {
-      vHistBest[iPar][0]->SetTitle( Form("%s results of data-like MC sample fits",parTitle[iPar].c_str()) );
-      vHistErrH[iPar][0]->SetTitle( Form("%s MINOS uncertainties of data-like MC sample fits",parTitle[iPar].c_str()) );
+      vHistBest[iPar][0]->SetTitle( Form("%s results of data fit with toy efficiencies",parTitle[iPar].c_str()) );
+      vHistErrH[iPar][0]->SetTitle( Form("%s MINOS uncertainties of data fit with toy efficiencies",parTitle[iPar].c_str()) );
       leg->SetBorderSize(0);
       leg->AddEntry(vHistBest[iPar][0],Form("%i [Bias:%.3f RMS:%.3f]",vq2Bins[0],vBias[iPar][0],vRMS[iPar][0]),"l");
     }
@@ -311,12 +316,14 @@ void plotMultiFit_efftoy (int binIndex=-1, int parity=0, int whichSamples = 2, b
     cUncert[iPar]->cd();
     legUnc->Draw();
 
-    string toyConfString = "_toybkg";
+    string confString = "recoMC_toybkg";
+    if (whichSamples==3)
+      confString = "data";
     // if (plot4dFit) toyConfString = toyConfString + "_4Dbkg";
     // if (!ref4dFit) toyConfString = toyConfString + "_vs3DfullMC";
 
-    cDistr[iPar]->SaveAs(Form("plotSimFit4d_d/xgbv8/simfit_recoMC_efftoy_%s_dist%s_XGBv8.pdf",parName[iPar].c_str(),toyConfString.c_str()));
-    cUncert[iPar]->SaveAs(Form("plotSimFit4d_d/xgbv8/simfit_recoMC_efftoy_%s_uncert%s_XGBv8.pdf",parName[iPar].c_str(),toyConfString.c_str()));
+    cDistr[iPar]->SaveAs(Form("plotSimFit4d_d/xgbv8/simfit_%s_efftoy_%s_dist_XGBv8.pdf",confString.c_str(),parName[iPar].c_str()));
+    cUncert[iPar]->SaveAs(Form("plotSimFit4d_d/xgbv8/simfit_%s_efftoy_%s_uncert_XGBv8.pdf",confString.c_str(),parName[iPar].c_str()));
 
     // Plot resutls vs q2
 
@@ -378,7 +385,7 @@ void plotMultiFit_efftoy (int binIndex=-1, int parity=0, int whichSamples = 2, b
 
     auto GrReco = new TGraphAsymmErrors(nBins, q2Val, aReco, q2Err, q2Err, aRecoErrL, aRecoErrH);
     GrReco->SetName(Form("GrReco%i",iPar));
-    GrReco->SetTitle(Form("%s results from fit to data-like MC subsamples",parTitle[iPar].c_str()));
+    GrReco->SetTitle(Form("%s results from data fit with toy efficiencies",parTitle[iPar].c_str()));
     GrReco->GetYaxis()->SetTitle(parTitle[iPar].c_str());
     auto Gr = new TGraphErrors(nBins, q2Val, aMean, q2Err, aMeanErr);
     Gr->SetName(Form("Gr%i",iPar));    
@@ -432,10 +439,10 @@ void plotMultiFit_efftoy (int binIndex=-1, int parity=0, int whichSamples = 2, b
     legRes->SetFillColor(1);
     legRes->SetFillStyle(0);
     legRes->SetTextSize(0.032);
-    legRes->AddEntry(GrReco,"Fit to full-MC sample","lep");
-    legRes->AddEntry(Gr,"Mean of fit to data-like MC samples","lep");
-    legRes->AddEntry(GrQuantIn,"Central 68\% of the results","f");
-    legRes->AddEntry(GrQuantOut,"Central 95\% of the results","f");
+    legRes->AddEntry(GrReco,"Fit with nominal efficiency","lep");
+    legRes->AddEntry(Gr,"Mean of toy-efficiency fit results","lep");
+    legRes->AddEntry(GrQuantIn,"Central 68\% of the toy-efficiency results","f");
+    legRes->AddEntry(GrQuantOut,"Central 95\% of the toy-efficiency results","f");
 
     // Zero line
     TLine *line = new TLine(GrReco->GetXaxis()->GetXmin(),0,GrReco->GetXaxis()->GetXmax(),0);
@@ -509,7 +516,7 @@ void plotMultiFit_efftoy (int binIndex=-1, int parity=0, int whichSamples = 2, b
     line->Draw();
     resDiffCover->Draw("e2");
 
-    cResult[iPar]->SaveAs(Form("plotSimFit4d_d/xgbv8/simfit_recoMC_efftoy_%s_results%s_XGBv8.pdf",parName[iPar].c_str(),toyConfString.c_str()));
+    cResult[iPar]->SaveAs(Form("plotSimFit4d_d/xgbv8/simfit_%s_efftoy_%s_results_XGBv8.pdf",confString.c_str(),parName[iPar].c_str()));
 
   }
 

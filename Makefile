@@ -24,6 +24,7 @@ EXECUTABLE12 := plot_simfit_data_fullAngularMass_Swave
 EXECUTABLE13 := plot_simfit_recoMC_fullAngularMass_toybkg
 EXECUTABLE14 := plot_simfit_recoMC_fullAngularMass
 EXECUTABLE15 := simfit_recoMC_fullAngularMass_toybkg_toyeff
+EXECUTABLE16 := simfit_data_fullAngularMass_Swave_toyeff
 
 EXTRACLASS := RooDataHist.cxx
 CLASS0     := PdfRT
@@ -108,6 +109,9 @@ $(EXECUTABLE14): $(EXECUTABLE14).cc
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS) $(SOURCEDIR)/$(CLASS4).cc $(CLASSDICT2).cc $(ROOTLIBS) $(ROOTFLAGS) -I$(INCLUDEDIR) 
 
 $(EXECUTABLE15): $(EXECUTABLE15).cc 
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS) $(SOURCEDIR)/$(CLASS4).cc $(CLASSDICT2).cc $(ROOTLIBS) $(ROOTFLAGS) -I$(INCLUDEDIR) 
+
+$(EXECUTABLE16): $(EXECUTABLE16).cc 
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS) $(SOURCEDIR)/$(CLASS4).cc $(CLASSDICT2).cc $(ROOTLIBS) $(ROOTFLAGS) -I$(INCLUDEDIR) 
 
 #cleaning options
