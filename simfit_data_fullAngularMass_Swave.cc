@@ -765,7 +765,7 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
 
 	TStopwatch improvTime;
 	improvTime.Start(true);
-	if (runPostFitSteps) fitter->improveAng(1,100000);
+	if (runPostFitSteps) fitter->improveAng(1,300000);
 	improvTime.Stop();
 	imprTime = improvTime.CpuTime();
 	cout<<"Improv time: "<<imprTime<<" s"<<endl;
