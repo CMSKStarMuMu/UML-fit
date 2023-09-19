@@ -778,7 +778,7 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
       TStopwatch minosTime;
       minosTime.Start(true);
       
-      if (runPostFitSteps) fitter->MinosAng();
+      // if (runPostFitSteps) fitter->MinosAng();
       
       minosTime.Stop();
       minTime = minosTime.CpuTime();
