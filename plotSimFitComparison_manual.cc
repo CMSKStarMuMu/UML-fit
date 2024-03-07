@@ -8,7 +8,7 @@ void plotSimFitComparison_manual(int q2Bin = 4)
   
   bool verbose = false;
 
-  string shortString = Form("b%ip1",q2Bin);
+  string shortString = Form("b%ip0",q2Bin);
 
   static const int nPars = 8;
   string parName[nPars] = {"Fl","P1","P2","P3","P4p","P5p","P6p","P8p"};
@@ -69,7 +69,11 @@ void plotSimFitComparison_manual(int q2Bin = 4)
 
 
   // First reads values of parameters which are not P_i or F_L from the log file of the simultaneous fit
-  string finLogName = "/afs/cern.ch/work/d/dini/public/ResonantXGBv8/Corr_frac_sigma/Bin%i-allYears-Bern.log";
+  // for AN v9
+  // string finLogName = "/afs/cern.ch/work/d/dini/public/ResonantXGBv8/Corr_frac_sigma/Bin%i-allYears-Bern.log";
+  // for WP 90
+  string finLogName = "/afs/cern.ch/work/d/dini/public/ResonantSwapCut/Bin4SimBern/logs_simFit4d/simfit_data_fullAngularMass_Swave_%i_0_0_0_0_1_8_0_1_2_2016_2017_2018_unbl4.log";
+//   string finLogName = "/afs/cern.ch/work/d/dini/public/ResonantSwapCut/Bin6SimNoZed/logs_simFit4d/simfit_data_fullAngularMass_Swave_%i_0_0_0_0_0_8_0_1_2_2016_2017_2018_unbl4.log";
   // string finLogName = "logs_parSub/simfit_data_fullAngularMass_Swave_0_%i_0.out";
   // string finLogName = "logs_simFit4d/simfit_data_fullAngularMass_Swave_%i_1_0_0_0_0_1_2016_2017_2018.log";
   ifstream fin_log(Form(finLogName.c_str(),q2Bin));
@@ -109,6 +113,8 @@ void plotSimFitComparison_manual(int q2Bin = 4)
   // INPUTS
   // Now retrieves the angular parameters from the root file (they are saved in the fitResultsTree)
   string finName = "/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/simFitResults/simFitResult_data_fullAngularMass_Swave_%s_b%ip1_XGBv8.root";
+  /// tmp to change back
+  string finNameSingleYear = "/afs/cern.ch/work/d/dini/public/ResonantSwapCut/Bin4SingleBern/simFitResults4d/simFitResult_data_fullAngularMass_Swave_%s_b%i-XGBv8_unbl4.root";
   // which single year fits are available
   std::vector<int> haveSingleFits = {2016,2017,2018};
   int nYears = (int)haveSingleFits.size();
@@ -141,6 +147,9 @@ void plotSimFitComparison_manual(int q2Bin = 4)
 
   // Get pars from the single year fits, if any 
   for (int iYear=0; iYear<nYears; ++iYear) {
+    // temp to change back
+    finName = finNameSingleYear;
+//     auto fin = TFile::Open(Form(finNameSingleYear.c_str(),year[iYear].c_str(),q2Bin));
     auto fin = TFile::Open(Form(finName.c_str(),year[iYear].c_str(),q2Bin));
     if ( !fin || fin->IsZombie() ) {
       cout<<year[iYear]<<" file is problematic!"<<endl;
@@ -329,7 +338,7 @@ void plotSimFitComparison_manual(int q2Bin = 4)
     leg.AddEntry(gr[iYear], Form("Result %i", haveSingleFits[iYear]),"lep");
   leg.Draw();
 
-  canv.SaveAs(("plotSimFit4d_d/comparisonSimFit_result_"+shortString+"_XGBv8_newMaster.pdf").c_str());
+  canv.SaveAs(("plotSimFit4d_d/comparisonSimFit_result_"+shortString+"_XGBv8.pdf").c_str());
 
   // Plot S-wave parameters
   double xS[nYears][nSPars];
@@ -458,6 +467,8 @@ void plotSimFitComparison_manual(int q2Bin = 4)
   for (int iBin=nYears; iBin<nYears*nMassConstPars; ++iBin){
     string this_year = Form("%i", haveSingleFits[iBin%nYears]);
     hLabM->GetXaxis()->SetBinLabel(iBin+1+nYears*nMassPars,Form(massConstParName[iBin/nYears].c_str(), this_year.c_str()));
+    if (massConstParName[iBin/nYears].find("eltaPeak") !=std::string::npos)
+      hLabM->GetXaxis()->SetBinLabel(iBin+1+nYears*nMassPars,Form("#Deltam^{%s}", this_year.c_str()));      
   
   }
   double yRangeM = 9;
@@ -531,7 +542,7 @@ void plotSimFitComparison_manual(int q2Bin = 4)
     auto vp = canvM.cd();
     vp->SetGridx();
 
-    string plotTitleM = Form("Pulls of contrained fit parameters - q2 bin %i;(#theta_{fit} - #theta_{constr})/#sigma(#theta)_{constr};",q2Bin);
+    string plotTitleM = Form("Pulls of constrained fit parameters - q2 bin %i;(#theta_{fit} - #theta_{constr})/#sigma(#theta)_{constr};",q2Bin);
     double yRangeM = 9;
     if (q2Bin==4) yRangeM = 20;
     auto hLabM = new TH2S ("hLabPull",plotTitleM.c_str(),
@@ -539,8 +550,11 @@ void plotSimFitComparison_manual(int q2Bin = 4)
 			   3*nMassConstPars,0,3*nMassConstPars);
     for (int iBin=0; iBin<3; ++iBin)
       hLabM->GetYaxis()->SetBinLabel(iBin+1,Form("R^{%s}",year[iBin%3].c_str()));
-    for (int iBin=3; iBin<3*nMassConstPars; ++iBin)
+    for (int iBin=3; iBin<3*nMassConstPars; ++iBin){
       hLabM->GetYaxis()->SetBinLabel(iBin+1,Form(massConstParName[iBin/3].c_str(),year[iBin%3].c_str()));
+      if (massConstParName[iBin/3].find("eltaPeak") !=std::string::npos)
+        hLabM->GetYaxis()->SetBinLabel(iBin+1,Form("#Deltam^{%s}",year[iBin%3].c_str()));
+    }    
     hLabM->Draw();
 
     auto grSimM = new TGraphErrors(3*nMassConstPars,yMassSim,xMass,yMasseSim,xMasse);

@@ -28,6 +28,7 @@ int colors [12] = { 633, 417, 879, 857, 839, 801, 921, 607, 807, 419, 907, 402 }
 double diffMax = 0.0999;
 // double diffMax = 0.0499;
 
+float statUnc[nPars][nBins];
 
 void plotMultiFit (int binIndex=-1, int parity=1, int whichSamples = 2, bool ref4dFit = false)
 {
@@ -56,6 +57,7 @@ void plotMultiFit (int binIndex=-1, int parity=1, int whichSamples = 2, bool ref
   vector<int> vq2Bins (0);
 
   vector<string> table (0);
+  vector<string> stat_unc (0);
 
   binsUnc[0]=0.006;
   for (int i=0; i<nUncBins; ++i)
@@ -89,13 +91,15 @@ void plotMultiFit (int binIndex=-1, int parity=1, int whichSamples = 2, bool ref
     vq2Bins.push_back(q2Bin);
 
     TChain fitResultsTree ("fitResultsTree","");
-    string filename = Form("simFitResults4d/xgbv8/simFitResult_recoMC_fullAngularMass_toybkg201620172018_dataStat-*_b%i.root",q2Bin);
-    if (whichSamples==1) filename = Form("simFitResults4d/xgbv8/simFitResult_recoMC_fullAngularMass201620172018_dataStat-*_b%i_XGBv8.root",q2Bin);
-    if (whichSamples==0) filename = Form("simFitResults/xgbv8/simFitResult_recoMC_fullAngular201620172018_dataStat-*_b%ip%i.root",q2Bin,parity);
+    string filename = Form("/eos/cms/store/user/fiorendi/p5prime/angularFits/fullMC/4D_toybkg_p0_forSyst/simFitResult_recoMC_fullAngularMass_toybkg201620172018_dataStat-*_p%i_b%i_XGBv8_wp90.root",parity,q2Bin);
+    if (whichSamples==1) filename = Form("simFitResults4d/xgbv8/simFitResult_recoMC_fullAngularMass201620172018_dataStat-*_b%i_XGBv8_wp90.root",q2Bin);
+    if (whichSamples==0) filename = Form("simFitResults/xgbv8/simFitResult_recoMC_fullAngular201620172018_dataStat-*_b%ip%i_XGBv8_wp90.root",q2Bin,parity);
     fitResultsTree.Add(filename.c_str());
 
     string filename_fR = Form("simFitResults4d/simFitResult_recoMC_fullAngularMass201620172018_MCStat_b%i.root",q2Bin);
-    if (!ref4dFit) filename_fR = Form("/eos/user/a/aboletti/BdToKstarMuMu/simFitResults/simFitResult_recoMC_fullAngular201620172018_MCStat_b%ip%i_XGBv8.root",q2Bin,parity);
+    if (!ref4dFit) filename_fR = Form("simFitResults/xgbv8/simFitResult_recoMC_fullAngular201620172018_MCStat_b%ip%i_XGBv8_wp90.root",q2Bin,parity);
+    std::cout << filename_fR<<   std::endl;
+//     if (!ref4dFit) filename_fR = Form("/eos/user/a/aboletti/BdToKstarMuMu/simFitResults/simFitResult_recoMC_fullAngular201620172018_MCStat_b%ip%i_XGBv8.root",q2Bin,parity);
     TFile* filein_fR = TFile::Open(filename_fR.c_str());
     TTree* fitResultsTree_fR = (TTree*)filein_fR->Get("fitResultsTree");
     if (!fitResultsTree_fR || fitResultsTree_fR->GetEntries() != 1) {
@@ -159,6 +163,7 @@ void plotMultiFit (int binIndex=-1, int parity=1, int whichSamples = 2, bool ref
 
     string firstLine = "\\textbf{$q^2$-bin}";
     string line = Form("%i",q2Bin);
+
     
     for (int iPar=0; iPar<nPars; ++iPar) {
       // cout<<vRMS[iPar].back()<<", "<<vBias[iPar].back()<<"("<<vBias[iPar].back() * vBias[iPar].back()<<") -> "<<( vRMS[iPar].back() - vBias[iPar].back() * vBias[iPar].back() ) / ( fitResultsTree.GetEntries() - 1 )<<endl;
@@ -167,11 +172,14 @@ void plotMultiFit (int binIndex=-1, int parity=1, int whichSamples = 2, bool ref
       vBias[iPar].back() = vMean[iPar].back() - vHistBestRECO[iPar].back();
       vMeanErr[iPar].back() = vRMS[iPar].back() / sqrt( fitResultsTree.GetEntries() );
 
+      std::cout << "filling: " << iPar << "  " << q2Bin << vRMS[iPar].back()<< std::endl;
+      statUnc[iPar][q2Bin] = vRMS[iPar].back();
+      
       printf("%s:\tBias (wrt RECO result) = %.5f\tRMS deviation: %.5f\n",parName[iPar].c_str(),vBias[iPar].back(),vRMS[iPar].back());
 
       firstLine = firstLine +  " & \\textbf{$" + parTitle[iPar] + "$}";
       if (fabs(vBias[iPar].back())<0.0005)
-	line = line + " & < 0.001";
+	line = line + " & $<$ 0.001";
       else
 	line = line + Form(" & $\\pm %.3f$",fabs(vBias[iPar].back()));
 
@@ -183,6 +191,10 @@ void plotMultiFit (int binIndex=-1, int parity=1, int whichSamples = 2, bool ref
     }
     line = line + " \\\\";
     table.push_back(line);
+
+    line = line + " \\\\";
+    stat_unc.push_back(line);
+
 
   } while (++iColor);
 
@@ -290,8 +302,8 @@ void plotMultiFit (int binIndex=-1, int parity=1, int whichSamples = 2, bool ref
     if (ref4dFit) toyConfString = toyConfString + "_vs4DfullMC";
     else toyConfString = toyConfString + "_vs3DfullMC";
 
-    cDistr[iPar]->SaveAs(Form("plotSimFit_d/simfit_recoMC_%s_dist-%s_p%i.pdf",toyConfString.c_str(),parName[iPar].c_str(),parity));
-    cUncert[iPar]->SaveAs(Form("plotSimFit_d/simfit_recoMC_%s_uncert-%s_p%i.pdf",toyConfString.c_str(),parName[iPar].c_str(),parity));
+    cDistr[iPar]->SaveAs(Form("plotSimFit_d/simfit_recoMC_%s_dist-%s_p%i_wp90.pdf",toyConfString.c_str(),parName[iPar].c_str(),parity));
+    cUncert[iPar]->SaveAs(Form("plotSimFit_d/simfit_recoMC_%s_uncert-%s_p%i_wp90.pdf",toyConfString.c_str(),parName[iPar].c_str(),parity));
 
     // Plot resutls vs q2
 
@@ -485,12 +497,20 @@ void plotMultiFit (int binIndex=-1, int parity=1, int whichSamples = 2, bool ref
     line->Draw();
     resDiffCover->Draw("e2");
 
-    cResult[iPar]->SaveAs(Form("plotSimFit_d/simfit_recoMC_%s_results-%s_p%i.pdf",toyConfString.c_str(),parName[iPar].c_str(),parity));
+    cResult[iPar]->SaveAs(Form("plotSimFit_d/simfit_recoMC_%s_results-%s_p%i_wp90.pdf",toyConfString.c_str(),parName[iPar].c_str(),parity));
 
   }
 
   cout<<"===== Formatted bias table ========"<<endl;
   for (int iLine=0; iLine<table.size(); ++iLine)
     cout<<table[iLine]<<endl;
+
+  cout<<"===== Expected stat uncertainty ========"<<endl;
+  for (int ipar = 0; ipar < nPars; ipar++){    
+    for (int ibin = 0; ibin < nBins; ibin++){  
+      if (ibin == 4 || ibin ==6) continue;  
+      printf("%d: %.5f\n",ibin, statUnc[ipar][ibin]);
+    }
+  }
 
 }
