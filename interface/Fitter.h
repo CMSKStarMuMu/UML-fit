@@ -60,6 +60,8 @@ class Fitter {
 
   Int_t unbl;
 
+  Bool_t printMinosScan;
+
   void fillResultContainers(bool fromImprov = false, bool isFree = false) ;
 
   Double_t computeBoundaryDistance() ;
@@ -144,6 +146,8 @@ class Fitter {
   void setNCPU(Int_t _nCPU = 1, Int_t _nCPU_Pen=1) { nCPU=_nCPU;nCPU_Pen=_nCPU_Pen ;};
 
   void setUnbl(Int_t _unbl = 0) { unbl=_unbl; };
+
+  void PrintMinosScan(Bool_t flag = true) { printMinosScan=flag; };
 
   ClassDef(Fitter,1) // Code to run the fit and statistical uncertainty
 };
