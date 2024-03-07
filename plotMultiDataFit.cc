@@ -71,11 +71,11 @@ void plotMultiDataFit ()
     vq2Bins.push_back(q2stat);
 
     TChain fitResultsTree ("fitResultsTree","");
-    string filename = Form("/eos/cms/store/group/phys_bphys/fiorendi/p5prime/UML-fit/simFitResults4d/simFitResult_data_fullAngularMass_Swave_201620172018_b%istat-*_b%i-XGBv8.root",q2stat,q2Bin);
+    string filename = Form("/eos/cms/store/user/fiorendi/p5prime/angularFits/dataCR/signal-stat/simFitResult_data_fullAngularMass_Swave_201620172018_b%istat-*_b%i-XGBv8_wp90_unbl4.root",q2stat,q2Bin);
     fitResultsTree.Add(filename.c_str());
 
 //     string filename_fR = Form("/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/simFitResults/simFitResult_data_fullAngularMass_Swave_201620172018_b%ip1_XGBv8.root",q2Bin); // link will be updated
-    string filename_fR = Form("/afs/cern.ch/work/d/dini/public/ResonantXGBv8/Corr_frac_sigma/simFitResults4d/simFitResult_data_fullAngularMass_Swave_201620172018_b%i-XGBv8.root",q2Bin);
+    string filename_fR = Form("/afs/cern.ch/work/d/dini/public/ResonantSwapCut/Bin4SimBern/simFitResults4d/simFitResult_data_fullAngularMass_Swave_201620172018_b%i-XGBv8_unbl4.root",q2Bin);
     TFile* filein_fR = TFile::Open(filename_fR.c_str());
     TTree* fitResultsTree_fR = (TTree*)filein_fR->Get("fitResultsTree");
     if (!fitResultsTree_fR || fitResultsTree_fR->GetEntries() != 1) {
@@ -216,8 +216,10 @@ void plotMultiDataFit ()
     }
 
     legUnc->SetBorderSize(0);
-    legUnc->AddEntry(vHistErrH[iPar][0],Form("%i higher",vq2Bins[0]),"f");
-    legUnc->AddEntry(vHistErrL[iPar][0],Form("%i lower",vq2Bins[0]),"f");
+    legUnc->AddEntry(vHistErrH[iPar][0],Form("%i higher, mean: %.3f",vq2Bins[0], vHistErrH[iPar][0]->GetMean()),"f");
+    legUnc->AddEntry(vHistErrL[iPar][0],Form("%i lower, mean: %.3f",vq2Bins[0], vHistErrL[iPar][0]->GetMean()),"f");
+
+    printf("%s:\t Bin 0 Mean (high/low) = %.5f\t\n",parName[iPar].c_str(),(vHistErrH[iPar][0]->GetMean()+vHistErrL[iPar][0]->GetMean())/2);
 
     for (int iBin=1; iBin<nPlotBins; ++iBin) {
       cDistr[iPar]->cd();
@@ -239,8 +241,10 @@ void plotMultiDataFit ()
 
       leg->AddEntry(vHistBest[iPar][iBin],Form("%i [Bias:%.3f RMS:%.3f]",vq2Bins[iBin],vBias[iPar][iBin],vRMS[iPar][iBin]),"l");
       legPull->AddEntry(vHistPull[iPar][iBin],Form("%i [Mean:%.3f RMS:%.3f]",vq2Bins[iBin],vHistPull[iPar][iBin]->GetMean(),vHistPull[iPar][iBin]->GetRMS()),"l");
-      legUnc->AddEntry(vHistErrH[iPar][iBin],Form("%i higher",vq2Bins[iBin]),"f");
-      legUnc->AddEntry(vHistErrL[iPar][iBin],Form("%i lower",vq2Bins[iBin]),"f");
+      legUnc->AddEntry(vHistErrH[iPar][iBin],Form("%i higher, mean: %.3f",vq2Bins[iBin], vHistErrH[iPar][iBin]->GetMean()),"f");
+      legUnc->AddEntry(vHistErrL[iPar][iBin],Form("%i lower, mean: %.3f",vq2Bins[iBin], vHistErrL[iPar][iBin]->GetMean()),"f");
+
+      printf("%s:\tBin 5 Mean (high/low) = %.5f\t\n",parName[iPar].c_str(),(vHistErrH[iPar][iBin]->GetMean()+vHistErrL[iPar][iBin]->GetMean())/2);
     }
 
     vHistBest[iPar][0]->GetYaxis()->SetRangeUser(0,1.1*ymax);
@@ -268,9 +272,9 @@ void plotMultiDataFit ()
     cUncert[iPar]->cd();
     legUnc->Draw();
 
-    cDistr[iPar]->SaveAs(Form("plotSimFit_d/simfit_dataCRsub_%s_dist.pdf",parName[iPar].c_str()));
-    cPull[iPar]->SaveAs(Form("plotSimFit_d/simfit_dataCRsub_%s_pulls.pdf",parName[iPar].c_str()));
-    cUncert[iPar]->SaveAs(Form("plotSimFit_d/simfit_dataCRsub_%s_uncert.pdf",parName[iPar].c_str()));
+    cDistr[iPar]->SaveAs(Form("plotSimFit_d/simfit_dataCRsub_%s_dist_wp90.pdf",parName[iPar].c_str()));
+    cPull[iPar]->SaveAs(Form("plotSimFit_d/simfit_dataCRsub_%s_pulls_wp90.pdf",parName[iPar].c_str()));
+    cUncert[iPar]->SaveAs(Form("plotSimFit_d/simfit_dataCRsub_%s_uncert_wp90.pdf",parName[iPar].c_str()));
 
   }
   
@@ -343,6 +347,6 @@ void plotMultiDataFit ()
     leg.AddEntry(gr[iStat],Form("q2-bin %i stat",aq2stat[iStat]),"lep");
   leg.Draw();
 
-  canv.SaveAs("plotSimFit_d/simfit_dataCRsub_results_xgbv8.pdf");
+  canv.SaveAs("plotSimFit_d/simfit_dataCRsub_results_xgbv8_wp90.pdf");
 
 }
