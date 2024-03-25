@@ -64,15 +64,13 @@ void plotSimFitComparison(int q2Bin = 6, int q2Stat = -1)
   double massConstVal[3*nMassConstPars];
   double massConstErr[3*nMassConstPars];
 
+  // to be cross checked if exists (and if the parity is correct)
   string finName = "/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/simFitResults/simFitResult_data_fullAngularMass_Swave_%s_b%ip1_XGBv8.root";
-  // string finName = "simFitResults4d/simFitResult_data_fullAngularMass_Swave_%s" + statString + "_b%i.root";
+  //// use the following for plotting results from sub-samples of the data control channel
+  // string finName = "simFitResults4d/simFitResult_data_fullAngularMass_Swave_%s" + statString + "_b%i-XGBv8_wp90_unbl4.root";
   string finName2 = "/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/massFits-LMNR-XGBv8/%s.root";
   if (q2Bin==4) finName2 = "/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/massFits-Jpsi-XGBv8/%s.root";
   else if (q2Bin==6) finName2 = "/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/massFits-Psi-XGBv8/%s.root";
-  // string finName2 = "/eos/cms/store/user/fiorendi/p5prime/massFits/results_fits_%s_fM_";
-  // if (q2Bin==4) finName2 = finName2 + "Jpsi_newbdt.root";
-  // else if (q2Bin==6) finName2 = finName2 + "Psi_newbdt.root";
-  // else finName2 = finName2 + "newbdt.root";
 
   auto finSim = TFile::Open(Form(finName.c_str(),"201620172018",q2Bin));
   if ( !finSim || finSim->IsZombie() ) {

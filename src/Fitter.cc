@@ -91,6 +91,7 @@ Fitter::Fitter(const Fitter& other, const char* name) :
 
   usedPenalty = other.usedPenalty;
   runSimpleFit = other.runSimpleFit;
+  printMinosScan = other.printMinosScan;
 
 }
 
@@ -137,6 +138,8 @@ void Fitter::SetDefConf()
   nCPU_Pen=1;
 
   unbl = 0;
+
+  printMinosScan = false;
 
 }
 
@@ -308,6 +311,7 @@ Int_t Fitter::improveAng(int seed, int nGen)
   double improvNLL = NLL_before;
   double testNLL = 0;
   int iImprove = 0;
+  std::cout << Form("NLL_before = %.5f",NLL_before) << std::endl;
 
   do {
 
@@ -335,6 +339,7 @@ Int_t Fitter::improveAng(int seed, int nGen)
     ((RooRealVar*)angPars.at(iPar))->setVal(vImprovPar[iPar]);
   
   computeBoundaryDistance();
+  std::cout << Form("NLL_after = %.5f",improvNLL) << std::endl;
   std::cout<<"Improved fit result: deltaNLL = "<<NLL_before-improvNLL<<" bound dist: "<<preBoundDist<<" -> "<<boundDist<<std::endl;
 
   fillResultContainers(true);
@@ -352,6 +357,13 @@ Int_t Fitter::MinosAng(int seed, int nGenMINOS)
 
   TRandom3 randGenMinos (seed);
   double probedNLL;
+
+  if (printMinosScan) {
+    std::cout << "m ";
+    for (int iPar = 0; iPar < angPars.getSize(); ++iPar)
+      std::cout << Form("%.4f ",vResult[iPar]);
+    std::cout << Form("%.3f",NLL_min) << std::endl;
+  }
 
   // Loop over the parameters
   for (int iPar = 0; iPar < angPars.getSize(); ++iPar) {
@@ -413,18 +425,27 @@ Int_t Fitter::MinosAng(int seed, int nGenMINOS)
 	do p_test = parRandomPool->GetRandom();
 	while (p_test>par->getMax() || p_test<par->getMin());
 	par->setVal(p_test);
+	std::string nllprint = "l ";
 	for (int iPar1 = 0; iPar1 < angPars.getSize(); ++iPar1) {
-	  if (iPar1==iPar) continue;
+	  if (iPar1==iPar) {
+	    nllprint = nllprint + Form("%.4f ",p_test);
+	    continue;
+	  }
 	  RooRealVar* par1 = (RooRealVar*)angPars.at(iPar1);
 	  double par1val = 0;
 	  do par1val = randGenMinos.Gaus(vLastHit[iPar1],widthScale*TMath::Max(0.5*(vFitErrHigh[iPar1]-vFitErrLow[iPar1]),minParError));
 	  while (par1val>par1->getMax() || par1val<par1->getMin());
 	  par1->setVal(par1val);
+	  nllprint = nllprint + Form("%.4f ",par1val);
 	}
 	// check if the point is physical
 	if (boundary->getValV()>0) continue;
 	// get and test the local likelihood
 	probedNLL = nll->getValV();
+
+	if (printMinosScan)
+	  std::cout << nllprint << Form("%.3f",probedNLL) << std::endl;
+
 	if (probedNLL<=NLL_min+0.5) {
 	  p_in = p_test;
 	  if ( isErrHigh > 0 ) { if ( p_in > par->getMax()-parRandomPool->GetBinWidth(1) ) break; }
@@ -493,6 +514,10 @@ Int_t Fitter::MinosAng(int seed, int nGenMINOS)
     // }
 
   }
+
+  // Reset parameters to best fit result
+  for (int iPar = 0; iPar < angPars.getSize(); ++iPar)
+    ((RooRealVar*)angPars.at(iPar))->setVal(vResult[iPar]);
 
   return 0;
 
@@ -597,10 +622,9 @@ void Fitter::plotProjections(RooAbsPdf* singleYearPdf, RooAbsData* singleYearDat
       frames.push_back( var->frame(RooFit::Title(Form(frametitle.c_str(),var->GetTitle()))) );
     
       singleYearData->plotOn(frames[fr],
-			     RooFit::MarkerColor(kRed+1),
-			     RooFit::LineColor(kRed+1),
-			     RooFit::Binning(40),
-			     RooFit::Name(Form("plData%i",ipad)) );
+			     // RooFit::MarkerColor(kRed+1),
+			     // RooFit::LineColor(kRed+1),
+			     RooFit::Binning(40) );
         
       singleYearPdf->plotOn(frames[fr],
 			    RooFit::LineWidth(1),
@@ -623,6 +647,10 @@ void Fitter::plotProjections(RooAbsPdf* singleYearPdf, RooAbsData* singleYearDat
 			      RooFit::Components( catnames[1].c_str() ));
       }
 
+      singleYearData->plotOn(frames[fr],
+			     RooFit::Binning(40),
+			     RooFit::Name(Form("plData%i",ipad)) );
+        
       if (fr == 0) { 
 	leg->AddEntry(frames[fr]->findObject(Form("plData%i",ipad)),
 		      "Data",	"lep");

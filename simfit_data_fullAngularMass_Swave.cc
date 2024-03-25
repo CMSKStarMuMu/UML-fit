@@ -56,6 +56,8 @@ TCanvas* cPen;
 TCanvas* c [4*nBins];
 
 double power = 1.0;
+bool evalMistagSys = false;
+
 
 void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSample, uint nSample, uint q2stat, int fitOption, int XGBv, int unblind, bool localFiles, bool plot, int save, std::vector<int> years)
 {
@@ -394,8 +396,14 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
     double frac_sigma = fM_sigmas[years[iy]][q2Bin]/fraction/(1-fraction);
     if (nSample!=0) frac_sigma = fM_sigmas[years[iy]][q2stat]/fraction/(1-fraction);
 
+    double c_fm_val = 1;
+    if (evalMistagSys){
+      if (iy==0) c_fm_val = 1.07;
+      else if (iy==1) c_fm_val = 1.02;
+      else if (iy==2) c_fm_val = 1.03;
+    }  
     RooGaussian* c_fm = new RooGaussian(Form("c_fm^{%i}",years[iy]) , "c_fm" , *mFrac,  
-                                        RooConst(1.) , 
+                                        RooConst(c_fm_val) , 
                                         RooConst(frac_sigma)
                                         );
 
@@ -627,7 +635,9 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
   }
 
   TFile* fout = 0;
-  if (save>0) fout = new TFile(("simFitResults4d/simFitResult_data_fullAngularMass_Swave_" + all_years + stat + Form("_b%i%s_unbl%i.root", q2Bin, XGBstr.c_str(), unblind)).c_str(),"RECREATE");
+  std::string addInfo = evalMistagSys ? "_mistagSyst_exp" : "";
+
+  if (save>0) fout = new TFile(("simFitResults4d/simFitResult_data_fullAngularMass_Swave_" + all_years + stat + Form("_b%i%s_wp90_unbl%i%s.root", q2Bin, XGBstr.c_str(), unblind, addInfo.c_str())).c_str(),"RECREATE");
   RooWorkspace* wsp_out = 0;
 
   // save initial par values    
@@ -762,7 +772,7 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
 
 	TStopwatch improvTime;
 	improvTime.Start(true);
-	if (runPostFitSteps) fitter->improveAng();
+	if (runPostFitSteps) fitter->improveAng(1,300000);
 	improvTime.Stop();
 	imprTime = improvTime.CpuTime();
 	cout<<"Improv time: "<<imprTime<<" s"<<endl;
@@ -806,7 +816,8 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
       if (plot && !multiSample && unblind>2) {
 
 	string plotString = shortString + "_" + all_years + stat + XGBstr + Form("_unbl%i",unblind);
-	string plotname = "plotSimFit4d_d/simFitResult_data_fullAngularMass_Swave_" + plotString + ".pdf";
+	addInfo = evalMistagSys ? "_mistagSyst_exp" : "";
+	string plotname = "plotSimFit4d_d/simFitResult_data_fullAngularMass_Swave_" + plotString + addInfo + ".pdf";
 	fitter->plotSimFitProjections(plotname.c_str(),{samplename,sigpdfname,bkgpdfname},years,true);
 
       }
