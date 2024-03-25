@@ -261,8 +261,8 @@ RooGenericPdf* createPdfCuts(int q2Bin, int year, RooRealVar *var){
       }
 //      
      if(q2Bin==3)  expression = Form("(mass<%.5f)+(mass>%.5f)",m4[0],m1[0])+formula[0];
-     if(q2Bin==5)  expression = Form("(mass<%.5f)+(mass>%.5f)",m4[3],m1[3])+formula[3];
-     if(q2Bin==7)  expression = Form("(mass<%.5f)+(mass>%.5f)*(mass<%.5f)+(mass>%.5f)",m4[1],m1[1],m4[2],m1[2])+formula[1]+formula[2];
+     if(q2Bin==5)  expression = Form("(mass<%.5f)+(mass>%.5f)*(mass<%.5f)+(mass>%.5f)",m4[1],m1[1],m4[2],m1[2])+formula[1]+formula[2];
+     if(q2Bin==7)  expression = Form("(mass<%.5f)+(mass>%.5f)",m4[3],m1[3])+formula[3];
      std::cout<<Form("setting delatm for Era=%d => %f, %f, %f, %f",year,deltam[0],deltam[1],deltam[2],deltam[3])<<std::endl;
      std::cout<<Form("PdfCut expression defined for q2Bin=%i, year=%i as: %s",q2Bin,year,expression.c_str())<<std::endl;
      
