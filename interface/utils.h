@@ -48,6 +48,17 @@ std::map<int,std::vector<float>> constr_width_fac = {
   {2018, {1.87, 4.17, 1.16, 2.72, 1.27, 2.99, 1.08, 2.13, 1.00, 1.00, 1.78, 1.70, 0.00, 0.00, 1.84, 2.62}}
 };
 
+
+std::map<int,std::vector<float>> deltamv = {
+  {2016, {0.20,0.10,0.08,0.11}},
+  {2017, {0.19,0.09,0.07,0.08}},
+  {2018, {0.19,0.09,0.07,0.08}},
+};
+
+float binBorders [10] = { 1.1, 2, 4.3, 6, 8.68, 10.09, 12.86, 14.18, 16, 19};
+
+
+
 RooPlot* prepareFrame(RooPlot* frame){
     frame->GetYaxis()->SetTitleOffset(1.8);
     frame->SetMaximum(frame->GetMaximum()*1.15);
@@ -216,3 +227,46 @@ std::vector<RooDataSet*> createDatasetInData(int nSample, uint firstSample, uint
   return datasample;
 }
 
+RooGenericPdf* createPdfCuts(int q2Bin, int year, RooRealVar *var){
+      if((q2Bin!=3&&q2Bin!=5&&q2Bin!=7) || (year<2016||year>2018)){
+       std::cout<<Form("ERROR!!! ==> PdfCut not defined for q2Bin=%i, year=%i",q2Bin,year)<<std::endl;
+       exit(1);
+      }
+      RooGenericPdf* PdfCut  = 0;
+      string expression;
+      double PDGB0Mass       = 5.2797;
+      double PDGJpsiMass     = 3.0969;
+      double PDGPsiPrimeMass = 3.6861;
+      double deltam[4];
+      deltam[0]=deltamv[year][0];
+      deltam[1]=deltamv[year][1];
+      deltam[2]=deltamv[year][2];
+      deltam[3]=deltamv[year][3];
+      double resmass[4] = {PDGJpsiMass,PDGJpsiMass,PDGPsiPrimeMass,PDGPsiPrimeMass};
+      double binlow[4]  = {sqrt(binBorders[3]),sqrt(binBorders[5]),sqrt(binBorders[5]),sqrt(binBorders[7])};
+      double binhigh[4] = {sqrt(binBorders[4]),sqrt(binBorders[6]),sqrt(binBorders[6]),sqrt(binBorders[8])};
+      double m1[4];
+      double m2[4];
+      double m3[4];
+      double m4[4];
+      string formula[4] = {"","","",""};
+
+      for (int i=0; i<4; ++i) {
+        m1[i] = PDGB0Mass-resmass[i]+binhigh[i]+deltam[i];
+        m2[i] = PDGB0Mass-resmass[i]+binlow[i]+deltam[i];
+        m3[i] = PDGB0Mass-resmass[i]+binhigh[i]-deltam[i];
+        m4[i] = PDGB0Mass-resmass[i]+binlow[i]-deltam[i];
+        formula[i] = formula[i] + Form(" + (mass<%.5f)*(mass>%.5f)*(mass-%.5f)/%.5f",m1[i],m2[i],m2[i],binhigh[i]-binlow[i]);
+        formula[i] = formula[i] + Form(" + (mass<%.5f)*(mass>%.5f)*(%.5f-mass)/%.5f",m3[i],m4[i],m3[i],binhigh[i]-binlow[i]);
+      }
+//      
+     if(q2Bin==3)  expression = Form("(mass<%.5f)+(mass>%.5f)",m4[0],m1[0])+formula[0];
+     if(q2Bin==5)  expression = Form("(mass<%.5f)+(mass>%.5f)",m4[3],m1[3])+formula[3];
+     if(q2Bin==7)  expression = Form("(mass<%.5f)+(mass>%.5f)*(mass<%.5f)+(mass>%.5f)",m4[1],m1[1],m4[2],m1[2])+formula[1]+formula[2];
+     std::cout<<Form("setting delatm for Era=%d => %f, %f, %f, %f",year,deltam[0],deltam[1],deltam[2],deltam[3])<<std::endl;
+     std::cout<<Form("PdfCut expression defined for q2Bin=%i, year=%i as: %s",q2Bin,year,expression.c_str())<<std::endl;
+     
+//     
+     PdfCut = new RooGenericPdf(Form("pdf%i_%i",q2Bin,year),Form("pdf%i_%i",q2Bin,year),expression.c_str(),RooArgList(*var));
+     return PdfCut;
+}

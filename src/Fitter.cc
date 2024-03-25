@@ -165,7 +165,7 @@ Int_t Fitter::fit()
     }                              
          
     RooMinimizer m(*nll) ;
-    m.optimizeConst (kTRUE); // do not recalculate constant terms
+//    m.optimizeConst (kTRUE); // do not recalculate constant terms
     m.setOffsetting(kTRUE);  //  Enable internal likelihood offsetting for enhanced numeric precision.
     // m.setVerbose(kTRUE);
     m.setPrintLevel(-1);
