@@ -4,6 +4,7 @@
 #include <RooRealVar.h>
 #include <RooWorkspace.h>
 #include <RooConstVar.h>
+#include <RooGenericPdf.h>
 #include <map>
 
 using namespace std;
@@ -227,7 +228,7 @@ std::vector<RooDataSet*> createDatasetInData(int nSample, uint firstSample, uint
   return datasample;
 }
 
-RooGenericPdf* createPdfCuts(int q2Bin, int year, RooRealVar *var){
+RooGenericPdf* createPdfCuts(int q2Bin, int year, RooRealVar *var, RooRealVar *slo){
       if((q2Bin!=3&&q2Bin!=5&&q2Bin!=7) || (year<2016||year>2018)){
        std::cout<<Form("ERROR!!! ==> PdfCut not defined for q2Bin=%i, year=%i",q2Bin,year)<<std::endl;
        exit(1);
@@ -256,17 +257,19 @@ RooGenericPdf* createPdfCuts(int q2Bin, int year, RooRealVar *var){
         m2[i] = PDGB0Mass-resmass[i]+binlow[i]+deltam[i];
         m3[i] = PDGB0Mass-resmass[i]+binhigh[i]-deltam[i];
         m4[i] = PDGB0Mass-resmass[i]+binlow[i]-deltam[i];
-        formula[i] = formula[i] + Form(" + (mass<%.5f)*(mass>%.5f)*(mass-%.5f)/%.5f",m1[i],m2[i],m2[i],binhigh[i]-binlow[i]);
-        formula[i] = formula[i] + Form(" + (mass<%.5f)*(mass>%.5f)*(%.5f-mass)/%.5f",m3[i],m4[i],m3[i],binhigh[i]-binlow[i]);
+        formula[i] = formula[i] + Form(" + (@0<%.5f)*(@0>%.5f)*(@0-%.5f)/%.5f",m1[i],m2[i],m2[i],binhigh[i]-binlow[i]);
+        formula[i] = formula[i] + Form(" + (@0<%.5f)*(@0>%.5f)*(%.5f-@0)/%.5f",m3[i],m4[i],m3[i],binhigh[i]-binlow[i]);
       }
 //      
-     if(q2Bin==3)  expression = Form("(mass<%.5f)+(mass>%.5f)",m4[0],m1[0])+formula[0];
-     if(q2Bin==5)  expression = Form("(mass<%.5f)+(mass>%.5f)*(mass<%.5f)+(mass>%.5f)",m4[1],m1[1],m4[2],m1[2])+formula[1]+formula[2];
-     if(q2Bin==7)  expression = Form("(mass<%.5f)+(mass>%.5f)",m4[3],m1[3])+formula[3];
+     if(q2Bin==3)  expression = Form("(@0<%.5f)+(@0>%.5f)",m4[0],m1[0])+formula[0];
+     if(q2Bin==5)  expression = Form("(@0<%.5f)+(@0>%.5f)*(@0<%.5f)+(@0>%.5f)",m4[1],m1[1],m4[2],m1[2])+formula[1]+formula[2];
+     if(q2Bin==7)  expression = Form("(@0<%.5f)+(@0>%.5f)",m4[3],m1[3])+formula[3];
+     expression="("+expression+")*exp(@0*@1)";
      std::cout<<Form("setting delatm for Era=%d => %f, %f, %f, %f",year,deltam[0],deltam[1],deltam[2],deltam[3])<<std::endl;
      std::cout<<Form("PdfCut expression defined for q2Bin=%i, year=%i as: %s",q2Bin,year,expression.c_str())<<std::endl;
      
 //     
-     PdfCut = new RooGenericPdf(Form("pdf%i_%i",q2Bin,year),Form("pdf%i_%i",q2Bin,year),expression.c_str(),RooArgList(*var));
+     PdfCut = new RooGenericPdf(Form("pdf%i_%i",q2Bin,year),Form("pdf%i_%i",q2Bin,year),expression.c_str(),RooArgList(*var,*slo));
+     PdfCut->Print();
      return PdfCut;
 }
