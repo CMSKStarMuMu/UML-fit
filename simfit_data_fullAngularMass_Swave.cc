@@ -746,8 +746,10 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
       if (q2Bin==4) fitter->runSimpleFit = true;
     }
 
-    if (q2Bin==3 || q2Bin==5)
+    if (q2Bin==3 || q2Bin==5){
       fitter->DisableConstOpt();
+      std::cout<<Form("DisableConstOpt for q2Bin=%d",q2Bin)<<std::endl;
+    }  
 
     subTime.Start(true);
     int status = fitter->fit();
