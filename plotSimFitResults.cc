@@ -10,9 +10,9 @@ code to plot results from the Simultaneous fit of multiple years and compare the
 
 
 static const int nBins = 8; // was 8
-float binBorders [nBins+1] = { 1, 2, 4.3, 6, 8.68, 10.09, 12.86, 14.18, 16};
+float binBorders [nBins+1] = { 1.1, 2, 4.3, 6, 8.68, 10.09, 12.86, 14.18, 16};
 // static const int nBins = 9;
-// float binBorders [nBins+1] = { 1, 2, 4.3, 6, 8.68, 10.09, 12.86, 14.18, 16, 19};
+// float binBorders [nBins+1] = { 1.1, 2, 4.3, 6, 8.68, 10.09, 12.86, 14.18, 16, 19};
 
 static const int nPars = 8;
 string ParName  [nPars] = { "Fl", "P1", "P2", "P3", "P4p", "P5p", "P6p", "P8p" };

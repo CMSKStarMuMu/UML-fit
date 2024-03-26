@@ -4,7 +4,7 @@ using namespace std;
 double deltaR(double eta1, double phi1, double eta2, double phi2);
 
 static const int nBins = 9;
-float binBorders [nBins+1] = { 1, 2, 4.3, 6, 8.68, 10.09, 12.86, 14.18, 16, 19};
+float binBorders [nBins+1] = { 1.1, 2, 4.3, 6, 8.68, 10.09, 12.86, 14.18, 16, 19};
 
 double PDGB0Mass = 5.2797;
 double PDGJpsiMass = 3.0969;

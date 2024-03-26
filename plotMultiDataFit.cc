@@ -8,7 +8,7 @@
 using namespace std;
 
 static const int nBins = 8;
-float binBorders [nBins+1] = { 1, 2, 4.3, 6, 8.68, 10.09, 12.86, 14.18, 16};
+float binBorders [nBins+1] = { 1.1, 2, 4.3, 6, 8.68, 10.09, 12.86, 14.18, 16};
 
 static const int nUncBins = 100;
 double binsUnc [nUncBins+1];
