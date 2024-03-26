@@ -746,6 +746,9 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
       if (q2Bin==4) fitter->runSimpleFit = true;
     }
 
+    if (q2Bin==3 || q2Bin==5)
+      fitter->DisableConstOpt();
+
     subTime.Start(true);
     int status = fitter->fit();
     subTime.Stop();
