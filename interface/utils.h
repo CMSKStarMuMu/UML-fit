@@ -4,6 +4,7 @@
 #include <RooRealVar.h>
 #include <RooWorkspace.h>
 #include <RooConstVar.h>
+#include <RooGenericPdf.h>
 #include <map>
 
 using namespace std;
