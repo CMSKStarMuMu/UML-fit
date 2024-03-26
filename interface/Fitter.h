@@ -62,6 +62,8 @@ class Fitter {
 
   Bool_t printMinosScan;
 
+  Bool_t disableConstOpt;
+
   void fillResultContainers(bool fromImprov = false, bool isFree = false) ;
 
   Double_t computeBoundaryDistance() ;
@@ -148,6 +150,8 @@ class Fitter {
   void setUnbl(Int_t _unbl = 0) { unbl=_unbl; };
 
   void PrintMinosScan(Bool_t flag = true) { printMinosScan=flag; };
+
+  void DisableConstOpt(Bool_t flag = true) { disableConstOpt=flag; };
 
   ClassDef(Fitter,1) // Code to run the fit and statistical uncertainty
 };

@@ -242,6 +242,8 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
     if ( !effCHist[iy] || effCHist[iy]->IsZombie() || !effWHist[iy] || effWHist[iy]->IsZombie() ) {
       cout<<"Efficiency histogram "<< effCString <<" or " << effWString << " not found in file: "<< filename <<endl;
       return;
+    }else{
+      cout<<"Efficiency histogram "<< effCString <<" or " << effWString << " found in file: "<< filename <<endl;
     }
 
     // create efficiency functions
@@ -529,6 +531,8 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
     // in Jpsi bin, if fitOption > 0 -> bernstein polynbomial
     RooRealVar* slope = new RooRealVar(Form("slope^{%i}",years[iy]),  Form("slope^{%i}",years[iy]) , -5., -10., 0.);
     RooAbsPdf* bkg_mass_pdf = 0;
+    RooExponential* bkg_exp_pdf = 0;
+    RooGenericPdf* pdfCut = 0;
     double pol_bmax =1.;
     RooRealVar* b0_bkg_mass = new RooRealVar(Form("b0_bkg_mass-%i",years[iy]) , Form("b0_bkg_mass-%i",years[iy])  ,  pol_bmax  );
     RooRealVar* b1_bkg_mass = new RooRealVar(Form("b1_bkg_mass-%i",years[iy]) , Form("b1_bkg_mass-%i",years[iy])  ,  0.1,  0., pol_bmax);
@@ -540,7 +544,14 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
       b3_bkg_mass->setConstant(true);
       bkg_mass_pdf = new RooBernstein(Form("bkg_mass1_%i",years[iy]),Form("bkg_mass1_%i",years[iy]),  *mass, RooArgList(*b0_bkg_mass, *b1_bkg_mass, *b2_bkg_mass, *b3_bkg_mass,* b4_bkg_mass));
     } else { 
-      bkg_mass_pdf = new RooExponential(Form("bkg_mass1_%i",years[iy]),  Form("bkg_mass1_%i",years[iy]) ,  *mass,   *slope  );
+      bkg_exp_pdf = new RooExponential(Form("bkg_mass1_%i",years[iy]),  Form("bkg_mass1_%i",years[iy]) ,  *mass,   *slope  );
+      if (q2Bin==3||q2Bin==5) {
+       pdfCut = createPdfCuts(q2Bin,years[iy], mass);
+       bkg_mass_pdf= new RooProdPdf(Form("bkg_mass_pdf_%i",years[iy]),Form("bkg_mass_pdf_%i",years[iy]),RooArgSet(*bkg_exp_pdf,*pdfCut));
+      }else{
+       bkg_mass_pdf=bkg_exp_pdf;
+      } 
+       
     } 
 
     RooProdPdf* bkg_pdf = new RooProdPdf(Form(bkgpdfname.c_str(),years[iy]),
@@ -734,6 +745,11 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
       // for bin 4, do not run the penalty even if needed
       if (q2Bin==4) fitter->runSimpleFit = true;
     }
+
+    if (q2Bin==3 || q2Bin==5){
+      fitter->DisableConstOpt();
+      std::cout<<Form("DisableConstOpt for q2Bin=%d",q2Bin)<<std::endl;
+    }  
 
     subTime.Start(true);
     int status = fitter->fit();
