@@ -532,7 +532,6 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
     RooRealVar* slope = new RooRealVar(Form("slope^{%i}",years[iy]),  Form("slope^{%i}",years[iy]) , -5., -10., 0.);
     RooAbsPdf* bkg_mass_pdf = 0;
     RooExponential* bkg_exp_pdf = 0;
-    RooGenericPdf* pdfCut = 0;
     double pol_bmax =1.;
     RooRealVar* b0_bkg_mass = new RooRealVar(Form("b0_bkg_mass-%i",years[iy]) , Form("b0_bkg_mass-%i",years[iy])  ,  pol_bmax  );
     RooRealVar* b1_bkg_mass = new RooRealVar(Form("b1_bkg_mass-%i",years[iy]) , Form("b1_bkg_mass-%i",years[iy])  ,  0.1,  0., pol_bmax);
