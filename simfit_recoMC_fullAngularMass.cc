@@ -451,7 +451,7 @@ void simfit_recoMC_fullAngularMassBin(int q2Bin, int parity, bool multiSample, u
   if (nSample>0)   stat = stat + Form("-%i",firstSample);
   if (multiSample) stat = stat + Form("-%i",lastSample);
   TFile* fout = 0;
-  if (save>0) fout = new TFile(("simFitResults4d/xgbv8/simFitResult_recoMC_fullAngularMass" + all_years + stat + Form("_b%i", q2Bin) + XGBstr + ".root").c_str(),"RECREATE");
+  if (save>0) fout = new TFile(("simFitResults4d/xgbv8/simFitResult_recoMC_fullAngularMass" + all_years + stat + "_" + shortString +  XGBstr + ".root").c_str(),"RECREATE");
   RooWorkspace* wsp_out = 0;
   
   // save initial par values    

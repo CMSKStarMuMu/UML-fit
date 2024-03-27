@@ -261,10 +261,16 @@ void simfit_recoMC_fullAngularMassBin(int q2Bin, int parity, bool multiSample, u
 
     // read mass pdf for background
     RooRealVar* slope       = new RooRealVar    (Form("slope^{%i}",years[iy]),  Form("slope^{%i}",years[iy]) , wsp_sb[iy]->var("slope")->getVal(), -10., 0.);
-    RooExponential* bkg_exp = new RooExponential(Form("bkg_exp_%i",years[iy]),  Form("bkg_exp_%i",years[iy]) ,  *slope,   *mass  );
     cout << Form("exponential slope for %f", slope->getVal())  << endl;
+    RooAbsPdf* bkg_mass_pdf = 0;
 
-
+    RooExponential* bkg_exp_pdf = new RooExponential(Form("bkg_mass1_%i",years[iy]),  Form("bkg_mass1_%i",years[iy]) ,  *mass,   *slope  );
+    if (q2Bin==3 || q2Bin==5) {
+     bkg_mass_pdf = createPdfCuts(q2Bin,years[iy], mass, slope);
+    }else{
+     bkg_mass_pdf = bkg_exp_pdf;
+    }     
+    
     // retrieve sideband range from input file
     float max_lsb = wsp_sb[iy]->var(Form("max_sbl_bin%i_%i", q2Bin, years[iy]))->getVal();
     float min_rsb = wsp_sb[iy]->var(Form("min_sbr_bin%i_%i", q2Bin, years[iy]))->getVal();
@@ -273,8 +279,11 @@ void simfit_recoMC_fullAngularMassBin(int q2Bin, int parity, bool multiSample, u
     cout << Form("sideband mass range: [5., %.2f] U [%.2f, 5.6]", max_lsb, min_rsb)  << endl;
 
     // create 4D pdf  for background and import to workspace
-    RooProdPdf* bkg_pdf = new RooProdPdf(Form(bkgpdfname.c_str(),years[iy]), Form(bkgpdfname.c_str(),years[iy]),
-					 RooArgList(*bkg_ang_pdf,*bkg_exp)); 
+    RooProdPdf* bkg_pdf = new RooProdPdf(Form(bkgpdfname.c_str(),years[iy]), 
+                                         Form(bkgpdfname.c_str(),years[iy]),
+					 RooArgList(*bkg_ang_pdf,*bkg_mass_pdf)); 
+
+
     wksp->import(*bkg_ang_pdf);
     wksp->import(*bkg_pdf, RecycleConflictNodes());
     
