@@ -546,10 +546,9 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
     } else { 
       bkg_exp_pdf = new RooExponential(Form("bkg_mass1_%i",years[iy]),  Form("bkg_mass1_%i",years[iy]) ,  *mass,   *slope  );
       if (q2Bin==3||q2Bin==5) {
-       pdfCut = createPdfCuts(q2Bin,years[iy], mass);
-       bkg_mass_pdf= new RooProdPdf(Form("bkg_mass_pdf_%i",years[iy]),Form("bkg_mass_pdf_%i",years[iy]),RooArgSet(*bkg_exp_pdf,*pdfCut));
+       bkg_mass_pdf = createPdfCuts(q2Bin,years[iy], mass, slope);
       }else{
-       bkg_mass_pdf=bkg_exp_pdf;
+       bkg_mass_pdf = bkg_exp_pdf;
       } 
        
     } 
@@ -746,10 +745,10 @@ void simfit_data_fullAngularMass_SwaveBin(int q2Bin, int parity, bool multiSampl
       if (q2Bin==4) fitter->runSimpleFit = true;
     }
 
-    if (q2Bin==3 || q2Bin==5){
-      fitter->DisableConstOpt();
-      std::cout<<Form("DisableConstOpt for q2Bin=%d",q2Bin)<<std::endl;
-    }  
+//     if (q2Bin==3 || q2Bin==5){
+//       fitter->DisableConstOpt();
+//       std::cout<<Form("DisableConstOpt for q2Bin=%d",q2Bin)<<std::endl;
+//     }  
 
     subTime.Start(true);
     int status = fitter->fit();
