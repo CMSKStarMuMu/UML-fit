@@ -1,16 +1,14 @@
 #!/bin/bash
-
-par=1
-
 multi=0
-nsam=${1}
-
 xgb=8
 
 plot=0
 save=1
 
+nsam=${1}
 ibin=${2}
+par=${3}
+yearConf=${4}
 
 ## if localFile == 1, please check the name of the MC dataset being copied
 localFile=0
@@ -96,8 +94,28 @@ cp $HOME/simfit_recoMC_fullAngular .
 mkdir -p simFitResults/xgbv8
 mkdir -p plotSimFit_d/xgbv8
 
-echo ./simfit_recoMC_fullAngular ${bin} ${par} ${multi} ${nsam} ${xgb} ${localFile}  ${plot} ${save} 2016 2017 2018
-./simfit_recoMC_fullAngular ${bin} ${par} ${multi} ${nsam} ${xgb} ${localFile}  ${plot} ${save} 2016 2017 2018
+case "$yearConf" in
+    0)
+        echo ./simfit_recoMC_fullAngular ${bin} ${par} ${multi} ${nsam} ${xgb} ${localFile} ${plot} ${save} 2016 2017 2018
+        ./simfit_recoMC_fullAngular ${bin} ${par} ${multi} ${nsam} ${xgb} ${localFile} ${plot} ${save} 2016 2017 2018
+	;;
+
+    1)
+        echo ./simfit_recoMC_fullAngular ${bin} ${par} ${multi} ${nsam} ${xgb} ${localFile} ${plot} ${save} 2016
+        ./simfit_recoMC_fullAngular ${bin} ${par} ${multi} ${nsam} ${xgb} ${localFile} ${plot} ${save} 2016 
+	;;
+
+    2)
+        echo ./simfit_recoMC_fullAngular ${bin} ${par} ${multi} ${nsam} ${xgb} ${localFile} ${plot} ${save} 2017
+        ./simfit_recoMC_fullAngular ${bin} ${par} ${multi} ${nsam} ${xgb} ${localFile} ${plot} ${save} 2017 
+	;;
+
+    3)
+        echo ./simfit_recoMC_fullAngular ${bin} ${par} ${multi} ${nsam} ${xgb} ${localFile} ${plot} ${save} 2018
+        ./simfit_recoMC_fullAngular ${bin} ${par} ${multi} ${nsam} ${xgb} ${localFile} ${plot} ${save} 2018 
+  ;;
+
+esac
 
 if [ ! -d $HOME/simFitResults/xgbv8 ]; then
     mkdir -p $HOME/simFitResults/xgbv8
@@ -107,6 +125,7 @@ if [ ! -d $HOME/plotSimFit_d/xgbv8 ]; then
 fi
 cp plotSimFit_d/xgbv8/* $HOME/plotSimFit_d/xgbv8/
 cp simFitResults/xgbv8/* $HOME/simFitResults/xgbv8/
+
 # for file in simFitResults/* ; do cp $file $HOME/${file//.root/_${multi}s${nsam}.root}; done
 
 # rm -rf plotSimFit_d

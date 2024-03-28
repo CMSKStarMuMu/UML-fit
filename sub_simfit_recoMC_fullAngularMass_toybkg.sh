@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Create directory for log files
-if [ ! -d logs_parSub/xgbv8 ]; then mkdir -p logs_parSub/xgbv8; fi
+if [ ! -d logs_parSub ]; then mkdir -p logs_parSub; fi
 
 nbins=$(wc -l ../confSF/KDE_SF_all.list | cut -d " " -f1)
 
@@ -10,11 +10,12 @@ while read -a line; do
     # Creation of the submit HTCondor file
     cat << EOF > temp_sub_simfit_recoMC_fullAngularMass_toybkg_oneBin${bin}.sub
 Executable  = run_simfit_recoMC_fullAngularMass_toybkg.sh
+parity      = 0
 nsamp       = \$(ProcId)
-Arguments   = \$INT(nsamp) ${bin} 
-Log         = logs_parSub/xgbv8/sub_\$(ClusterId).log
-Output      = logs_parSub/xgbv8/simfit_recoMC_fullAngularMass_toybkg_\$INT(nsamp)_${bin}.out
-Error       = logs_parSub/xgbv8/simfit_recoMC_fullAngularMass_toybkg_\$INT(nsamp)_${bin}.err
+Arguments   = \$INT(nsamp) ${bin} \$INT(parity)
+Log         = logs_parSub/sub_\$(ClusterId).log
+Output      = logs_parSub/simfit_recoMC_fullAngularMass_toybkg_\$INT(nsamp)_p\$INT(parity)_b${bin}.out
+Error       = logs_parSub/simfit_recoMC_fullAngularMass_toybkg_\$INT(nsamp)_p\$INT(parity)_b${bin}.err
 transfer_output_files = ""
 +JobFlavour = "testmatch"
 EOF

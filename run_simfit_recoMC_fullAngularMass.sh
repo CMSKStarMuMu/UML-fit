@@ -1,18 +1,16 @@
 #!/bin/bash
-
-par=1
-
 multi=0
-nsam=${1}
-
 xgb=8
 
 plot=1
 save=1
 
+nsam=${1}
 ibin=${2}
+par=${3}
 
 localFile=0
+
 export SAMPLEDIR=/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/MC-datasets/
 
 if [ "${xgb}" == 0 ]; then

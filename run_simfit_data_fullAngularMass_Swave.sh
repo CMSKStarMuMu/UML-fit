@@ -1,23 +1,19 @@
 #!/bin/bash
-
-par=1
-
 multi=0
-nsam=${1}
-q2stat=${4}
-
 XGBv=8
+
+plot=1
+
 localFile=0
 fitopt=0
 unbl=4
 
-plot=1
-save=${5}
-
+nsam=${1}
 bin=${2}
-# ibin=${2}
-
 yearConf=${3}
+q2stat=${4}
+save=${5}
+par=${6}
 
 export SAMPLEDIR=/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/data-datasets/
 export SBDIR=/eos/user/a/aboletti/BdToKstarMuMu/fileIndex/sidebands/

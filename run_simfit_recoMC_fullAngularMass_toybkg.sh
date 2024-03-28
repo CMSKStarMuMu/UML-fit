@@ -1,16 +1,13 @@
 #!/bin/bash
-
-par=1
-
 multi=0
-nsam=${1}
-
 xgb=8
 
 plot=1
 save=1
 
+nsam=${1}
 ibin=${2}
+par=${3}
 
 ## if localFile == 1, please check the name of the MC dataset being copied
 localFile=0

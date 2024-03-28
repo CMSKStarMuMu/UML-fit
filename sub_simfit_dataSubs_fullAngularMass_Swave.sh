@@ -10,12 +10,13 @@ Executable  = run_simfit_data_fullAngularMass_Swave.sh
 nsamp       = \$(ProcId) + 1
 bin         = 4
 yearConf    = 0
-q2stat      = 0
+q2stat      = 5
 save	    = 2
-Arguments   = \$INT(nsamp) \$INT(bin) \$INT(yearConf) \$INT(q2stat) \$INT(save)
+parity      = 1
+Arguments   = \$INT(nsamp) \$INT(bin) \$INT(yearConf) \$INT(q2stat) \$INT(save) \$INT(parity)
 Log         = logs_parSub/sub_\$(ClusterId).log
-Output      = logs_parSub/simfit_data_fullAngularMass_Swave_\$INT(nsamp)_\$INT(bin)_\$INT(yearConf)_\$INT(q2stat).out
-Error       = logs_parSub/simfit_data_fullAngularMass_Swave_\$INT(nsamp)_\$INT(bin)_\$INT(yearConf)_\$INT(q2stat).err
+Output      = logs_parSub/simfit_data_fullAngularMass_Swave_\$INT(nsamp)_year\$INT(yearConf)_stat\$INT(q2stat)_p\$INT(parity)_b\$INT(bin).out
+Error       = logs_parSub/simfit_data_fullAngularMass_Swave_\$INT(nsamp)_year\$INT(yearConf)_stat\$INT(q2stat)_p\$INT(parity)_b\$INT(bin).err
 transfer_output_files = ""
 +JobFlavour = "testmatch"
 EOF
